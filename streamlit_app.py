@@ -8,8 +8,9 @@ import csv
 import numpy 
 df = pd.read_csv("cleaned_volley_data.csv")
 columns = df.columns.tolist()
-team_column = "Team"
-No_team_column = "aces_per_set","assists_per_set","team_attacks_per_set","blocks_per_set","digs_per_set","digs_per_set","hitting_pctg","kills_per_set","opp_hitting_pctg","W","L","win_loss_pctg"
+team_column = ["Team"]
+No_team_column = ["aces_per_set","assists_per_set","team_attacks_per_set","blocks_per_set","digs_per_set","hitting_pctg","kills_per_set","opp_hitting_pctg","W","L","win_loss_pctg"]
+W_L_column = ["W","L"]
 hitting_team_column = "Team","hitting_pctg"
 with st.sidebar: 
 
@@ -80,48 +81,28 @@ if selected == "Home":
 
     
 
-
-   
 elif selected == "Statisics": 
     #title
     st.subheader("Plot Data")
-    x_column = st.selectbox("Select x-axis column", No_team_column )
-    y_column = st.selectbox("y-axis is Team", team_column)
+    x_column = st.selectbox("Select x-axis column", No_team_column,key="x_column_plot" )
+    y_column = st.selectbox("y-axis is Team", team_column,key="y_column_plot")
     # scatters the two different columns the one with teams and the one with everything else. 
-    if st.button("Generate Plot"):
-        fig = px.scatter(df, x=x_column, y="Team" )
+    if st.button("Generate plot"):
+        fig = px.scatter(df, x=x_column, y= team_column )
         st.plotly_chart(fig)
-  
+        #Used keys as there were too many similar selectboxes
+    x_column_selectbox = st.selectbox("Select x-axis column", "Team", key="x_column_box"  )
+    y_column_selectbox = st.selectbox("y-axis is Team", W_L_column,key="y_column_box") 
+    # Shows wins and loses of teams    
+    if st.button("Generate Histogram"):
+        fig = px.histogram(df,  x=x_column_selectbox, y=y_column_selectbox)
+        st.plotly_chart(fig)
 
-    # title
-    st.subheader("Winning vs. Losing Teams Comparison")
-
-    # I defined a function to show the match outcome which divides the 'W' and 'L' columns. 
-    def get_match_outcome(row):
-        if row["W"] > row["L"]:
-            return 'W'
-        else:
-            return 'L'
-
-
-    # I created the 'match_outcome' column by applying the function to each row
-    df["match_outcome"] = df.apply(get_match_outcome, axis=1)
-    # Checking if the 'match_outcome' column is created
-    if "match_outcome" in df.columns:
-    # Selecting the different stat to generate the plot. I used the format from plot data
-    #selected_column = st.selectbox("Select column to filter by", No_team_column )
-    #unique_values = df[selected_column].unique()
-        vb_stats = st.selectbox("Select the statistic to plot", No_team_column )
    
-    # Creating the box plot and it's comparing vb_stats by match outcome
-        fig = px.box(df, x="match_outcome", y= vb_stats , title=f"{vb_stats} by Match Outcome")
-    
-    # Displaying the plot in Streamlit
-        st.plotly_chart(fig)
+
 
 elif selected == "Form":
-  
-    with st.form("volleyball_query_form"):
+  with st.form("volleyball_questions"):
     # User selects a question
         question = st.selectbox("What do you want to know?", [
         "Show all teams with more than X wins",
@@ -130,7 +111,7 @@ elif selected == "Form":
         "Which team has the most aces per set?"
     ])
 
-    # Dynamic input fields based on the selected question
+    # if questions 
         if question == "Show all teams with more than X wins":
             min_wins = st.number_input("Enter minimum wins:", min_value=0, step=1, value=10)
         elif question == "Compare two teams":
@@ -143,9 +124,10 @@ elif selected == "Form":
         submitted = st.form_submit_button("Submit")
 
         if submitted:
+            #javascript alert uses script to pop up message
             components.html("""
         <script>
-        alert('You have submitted the form!');  // Alert after form submission
+        alert('You have submitted the form!');  
         </script>
     """, height=0)
         st.write("### 📊 **Results**")
@@ -170,6 +152,17 @@ elif selected == "Form":
             st.write(best_aces_team["Team"], "has the most aces per set:", best_aces_team["aces_per_set"])
 
 elif selected == "Feedback":
-    st.write("hi")
+    #recomdentation
+    st.markdown("**You can view from the plot how teams perform in different areas like aces per set, assists per set, team attacks per set, blocks per set, and digs per set.**")
+    st.markdown("If we look at the aces per set statistic, there are teams like **Lafayette** and **Delaware ST.** that seem to dominate and outperform others consistently. These teams have a very good serving game, and it would be best to focus on maintaining or building on this. Serving can actually be used to put pressure on the other team right away and earn points outright.")
+    st.markdown("The digs per set shows that **Mcneese** is defending strongly. With more digs, they are managing to successfully return balls and maintain rallies even under pressure. Teams weaker in this area might need to devote more time in training to developing defensive skills, particularly receiving serve and defending against strong attacking.")
+    st.markdown("In blocks per set, **Maryland** is progressing with outstanding net defense. Large blocking numbers are often among the secrets of stifling opponent attack. Lower rated teams in terms of block percentage success may take some time working on block skills—improved timing and positioning could place them more solidly in charge at the net.")
+    st.markdown("The team with the most wins are three teams **Louisville**, **San Diego** and **Pitsburgh** which might seem suprising as most of their performences are high but they arent the outstanding ones. You see by this that it's important to keep a high percentage in everything to have a good overall win streak")
+    st.markdown("**My recommendation is that each team has to identify their weak point and improve on it to become more skilled and rank higher. I hope my project helped coaches and players see what they need to improve on.**")
+    st.write("What did you think of this website?")
+    sentiment = ["one","two","three","four","five"]
+    select = st.feedback("stars")
+    if select is not None:
+        st.markdown(f"You have selected {sentiment[select]}")
     
 
